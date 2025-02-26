@@ -54,10 +54,10 @@ function Requests_request(method, url as String, args as Object)
         if args.json <> invalid and type(args.json) = "roAssociativeArray"
             _json = FormatJson(args.json)
         end if
-        if args.timeout <> invalid and (type(args.timeout) = "Integer" or type(args.timeout) = "roInteger")
+        if args.timeout <> invalid and (type(args.timeout) = "Integer" or type(args.timeout) = "roInt")
             _timeout = args.timeout
         end if
-        if args.retryCount <> invalid and (type(args.retryCount) = "Integer" or type(args.retryCount) = "roInteger")
+        if args.retryCount <> invalid and (type(args.retryCount) = "Integer" or type(args.retryCount) = "roInt")
             _retryCount = args.retryCount
         end if
         if args.verify <> invalid and (type(args.verify) = "String" or type(args.verify) = "roString")
@@ -66,7 +66,7 @@ function Requests_request(method, url as String, args as Object)
         if args.useCache <> invalid and (type(args.useCache) = "Boolean" or type(args.useCache) = "roBoolean")
             _useCache = args.useCache
         end if
-        if args.cacheSeconds <> invalid and (type(args.cacheSeconds) = "Integer" or type(args.cacheSeconds) = "roInteger")
+        if args.cacheSeconds <> invalid and (type(args.cacheSeconds) = "Integer" or type(args.cacheSeconds) = "roInt")
             _cacheSeconds = args.cacheSeconds
         end if
         if args.parseJson <> invalid and (type(args.parseJson) = "Boolean" or type(args.parseJson) = "roBoolean")
