@@ -173,7 +173,6 @@ function Requests_run(method, url, headers, data, timeout, retryCount, verify, p
         'deincrement the number of retries
         retryCount = retryCount - 1
         requestDetails.timesTried = requestDetails.timesTried + 1
-        requestDetails.timedOut = false
 
         sent = invalid
 
@@ -244,6 +243,11 @@ function Requests_run(method, url, headers, data, timeout, retryCount, verify, p
                     urlTransfer.AsyncCancel()
                     timeout = timeout * 2
                     ? "[http] Timeout=", timeout
+                    ' Create a fresh roUrlTransfer so the next attempt
+                    ' doesn't race with the in-flight cancel.
+                    urlTransfer = RequestsUrlTransfer(true, true, verify)
+                    urlTransfer.setUrl(url)
+                    urlTransfer.setHeaders(headers)
                 end if
             end if
         end if
