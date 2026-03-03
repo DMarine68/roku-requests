@@ -163,6 +163,7 @@ function Requests_run(method, url, headers, data, timeout, retryCount, verify, p
     responseEvent = invalid
     requestDetails = {
         timesTried : 0,
+        timedOut : false,
         parseJson : parseJson,
         parseJsonFlags: parseJsonFlags
     }
@@ -172,6 +173,7 @@ function Requests_run(method, url, headers, data, timeout, retryCount, verify, p
         'deincrement the number of retries
         retryCount = retryCount - 1
         requestDetails.timesTried = requestDetails.timesTried + 1
+        requestDetails.timedOut = false
 
         sent = invalid
 
@@ -194,6 +196,7 @@ function Requests_run(method, url, headers, data, timeout, retryCount, verify, p
 
             event = invalid
 
+            port = urlTransfer.getPort()
             while true and cancel_and_return = false
 
                 if m.top <> invalid
@@ -202,13 +205,19 @@ function Requests_run(method, url, headers, data, timeout, retryCount, verify, p
                     end if
                 end if
 
-                event = urlTransfer.GetPort().GetMessage()
-
-                if type(event) = "roUrlEvent"
+                remainingMs = timeout_call - clock.totalMilliseconds()
+                if remainingMs <= 0
                     exit while
                 end if
 
-                if clock.TotalMilliseconds() > timeout_call
+                waitMs = remainingMs
+                if waitMs > 500 then
+                    waitMs = 500
+                end if
+
+                event = wait(waitMs, port)
+
+                if type(event) = "roUrlEvent"
                     exit while
                 end if
             end while
@@ -226,14 +235,13 @@ function Requests_run(method, url, headers, data, timeout, retryCount, verify, p
                     ? "[http] Will Retry ", retryCount
                 end if
             else
-                if m.cancel_and_return = true
+                if cancel_and_return = true
                     ? "[http] Killing the Task"
                     exit while
                 else
-                    'We timed out so we should cancel the request
                     ? "[http] Event Timed Out"
+                    requestDetails.timedOut = true
                     urlTransfer.AsyncCancel()
-                    'Exponential backoff timeouts
                     timeout = timeout * 2
                     ? "[http] Timeout=", timeout
                 end if
@@ -443,6 +451,7 @@ function Requests_response(urlTransfer as Object, responseEvent as Object, reque
     rr = {}
 
     rr.timesTried = requestDetails.timesTried
+    rr.timedOut = requestDetails.timedOut
     rr.url = urlTransfer.GetUrl()
     rr.ok = false
     rr.cacheHit = false
@@ -478,8 +487,8 @@ function RequestsUrlTransfer(enableEncodings as Boolean, retainBodyOnError as Bo
     _urlTransfer = CreateObject("roUrlTransfer")
     _urlTransfer.SetPort(CreateObject("roMessagePort"))
 
-     _urlTransfer.EnableEncodings(enableEncodings)
-     _urlTransfer.RetainBodyOnError(retainBodyOnError)
+    _urlTransfer.EnableEncodings(enableEncodings)
+    _urlTransfer.RetainBodyOnError(retainBodyOnError)
     if verify <> ""
         _urlTransfer.SetCertificatesFile(verify)
         _urlTransfer.InitClientCertificates()
