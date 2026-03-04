@@ -170,9 +170,10 @@ function Requests_run(method, url, headers, data, timeout, retryCount, verify, p
     'while we still have try times
     while retryCount >= 0
 
-        'deincrement the number of retries
+        'decrement the number of retries
         retryCount = retryCount - 1
         requestDetails.timesTried = requestDetails.timesTried + 1
+        requestDetails.timedOut = false
 
         sent = invalid
 
